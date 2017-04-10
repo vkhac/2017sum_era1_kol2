@@ -37,7 +37,7 @@ def import_data(input_file):
     json_data = open(input_file, 'r')
     data = json.load(json_data)
     json_data.close()
-    print(inputfile + ' imported\n')
+    print(input_file + ' imported\n')
     return data
 
 def export_data(output_file, output_data):
@@ -66,6 +66,10 @@ class Schoolclass(dict):
         else:
             self[name_subject] = scores
             print('Scores of ' + name_subject + ' have been registered\n')
+    
+    def import_scores(self, name_subject, import_file):
+        scores = import_data(import_file)
+        self.add_scores(name_subject, scores)
 
     def get_students(self):
         list_students = {}
@@ -73,17 +77,18 @@ class Schoolclass(dict):
             if self[subject]:
                 list_students.update(self[subject])
         return list_students.keys()
+    
+    def __str__(self):
+        result = ''
+        for  subject in self:
+            result += '     ' + subject + ' :\n'
+            for student in self[subject]:
+                result += student + ' : ' + str(self[subject][student]) + '\n'
+            result += '\n'
+        return result
 
     
-#These functions calculate different average for one student            
-def get_student_global_average(schoolclass, student):
-    global_scores = []
-    for subject in schoolclass:
-        temp = get_student_subject_average(schoolclass, student, subject)
-        if temp:
-            global_scores.append(temp)
-    return get_average(global_scores)
-    
+#These functions calculate different average for one student             
 def get_student_subject_average(schoolclass, student, subject): 
     if not schoolclass.has_key(subject):
         print(schoolclass + ' do not have the subject '+ subject + '\n')
@@ -91,18 +96,25 @@ def get_student_subject_average(schoolclass, student, subject):
         print('Scores of ' + subject + ' have not been registered\n')
     elif not schoolclass[subject].has_key(student):
         print(student + ' did not attend the subject ' + subject + '\n')
-        return 0
     else:   
         return get_average(schoolclass[subject][student])
 
+def get_student_global_average(schoolclass, student):
+    global_scores = []
+    for subject in schoolclass:
+        temp = get_student_subject_average(schoolclass, student, subject)
+        if temp:
+            global_scores.append(temp)
+    return get_average(global_scores)
+   
 
 #These functions export some useful data
-def export_schoolclass_average(schoolclass, name_file):
-    data = dict.fromkeys([name_file])
-    data[name_file] = dict.fromkeys(schoolclass.get_students())
-    for key in data[name_file]:
-        data[name_file][key] = get_student_global_average(schoolclass, key)
-    export_data(name_file + '.json', data)
+def export_schoolclass_average(schoolclass, name_class):
+    data = dict.fromkeys([name_class])
+    data[name_class] = dict.fromkeys(schoolclass.get_students())
+    for key in data[name_class]:
+        data[name_class][key] = get_student_global_average(schoolclass, key)
+    export_data(name_class + '.json', data)
 
 def export_student_school_report(schoolclass, student):
     data = dict.fromkeys([student], {})
@@ -121,35 +133,51 @@ def export_student_school_report(schoolclass, student):
 
 
 if __name__ == '__main__':
-    
-    new_class = Schoolclass()
-    new_class.add_subjects('Python')
-    new_class.add_scores('Java', [1,1,1])
-    new_class.add_subjects('Java')
-    new_class.add_scores('Java', {'John': [2, 2, 2], 'Adams': [3, 3.5, 4]})
-    new_class.add_scores('Python',{'John': [1, 1, 1]})
-    new_class.add_subjects('C', 'VBA')
-    new_class.add_scores('C',{'John': [3, 3, 3], 'Adams': [4, 5, 3]})
-    new_class.add_scores('VBA',{'John': [4], 'Adams': [4.5,4]})
-    
-    print new_class
-    
-    print get_student_subject_average(new_class, 'Adams', 'Python')
-    print get_student_subject_average(new_class, 'John', 'Java')
-    
-    print get_student_global_average(new_class, 'John')
-    print get_student_global_average(new_class, 'Adams')
-    
-    export_student_school_report(new_class, 'John')
-    export_schoolclass_average(new_class, 'Semester1')
-    
 
-    	
+    #Creation of the first schoolclass
+    class1 = Schoolclass()
 
+    #Creation of the dictionnary of subjects
+    class1.add_subjects('Python')
+    class1.add_subjects('C', 'VBA', 'Java')
+    
+    #Registration of scores
+    class1.add_scores('Java', {'John': [2, 2, 2], 'Adams': [3, 3.5, 4]})
+    class1.add_scores('Python',{'John': [1, 1, 1]})
+    class1.add_scores('VBA',{'John': [4], 'Adams': [4.5,4]})
+    class1.import_scores('C', 'C.json')
+    
+    print 'Class1 :'
+    print class1
+    
+    #Calculation of average per subject or global average
+    avg1 = get_student_subject_average(class1, 'Adams', 'Python')
+    print 'Adams average in Python : ', avg1
+    
+    avg2 = get_student_subject_average(class1, 'John', 'Java')
+    print 'John average in Java : ', avg2
+    
+    avg3 = get_student_global_average(class1, 'John')
+    print 'John global average : ', avg3
+    
+    avg4 = get_student_global_average(class1, 'Adams')
+    print 'Adams global average : ', avg4
+    
+    #Export of a school report for one student
+    export_student_school_report(class1, 'John')
+    export_student_school_report(class1, 'Adams')
+    
+    #Export of the list of students with the average score 
+    export_schoolclass_average(class1, 'Semester1')
+
+    #Possibility to manage the whole school by creating new schoolclasses
+    class2 = Schoolclass()
 	
-	
-
-
-
+    #Storage system of schoolclasses to be reused (export/import)
+    export_data('class1.json', class1)
+    
+    class3 = Schoolclass(import_data('class3.json'))
+    print 'Class3 :'
+    print class3
 
 

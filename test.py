@@ -18,8 +18,3 @@ class MyTest1(unittest.TestCase):
         self.assertEqual(self.d1, d2)
  
  
- class MyTestSchoolclass(unittest.TestCase):
- 
-     def setUp(self):
-        self.schooclass1 = Schoolclass()
- 
